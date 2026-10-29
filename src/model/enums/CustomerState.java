@@ -1,5 +1,10 @@
 package model.enums;
 
-public class CustomerState {
-    
+public enum CustomerState {
+    WAITING,
+    SEATED,
+    SERVED,
+    READY_TO_PAY,
+    PAID,
+    LEFT
 }
