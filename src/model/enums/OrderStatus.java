@@ -1,5 +1,9 @@
 package model.enums;
 
-public class OrderStatus {
-    
+public enum OrderStatus {
+    TAKEN,
+    IN_PREPARATION,
+    READY,
+    SERVED,
+    PAID
 }

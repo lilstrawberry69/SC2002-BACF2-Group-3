@@ -1,9 +1,9 @@
 package model;
 
-public class Dish implements IMenuItem {
-    private String name;
-    private double price;
-    private int requiredPrepunits;
+public class Dish implements MenuItem {
+    private final String name;
+    private final double price;
+    private final int requiredPrepunits;
 
     public Dish(String name, double price, int requiredPrepunits) {
         this.name = name;
