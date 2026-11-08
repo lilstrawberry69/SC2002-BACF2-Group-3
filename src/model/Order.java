@@ -1,6 +1,8 @@
 package model;
 import model.enums.OrderStatus;
 
+import model.customer.Customer;
+
 public class Order {
     private final IMenuItem item;
     private int prepUnitsLeft;
@@ -35,3 +37,5 @@ public class Order {
         this.status = OrderStatus.SERVED;
     }
 }
+
+

@@ -2,6 +2,7 @@ package model.staff;
 
 public abstract class Staff {
     protected boolean hasActed;
+    protected String name;
 
     public Staff() {
         this.hasActed = false;
