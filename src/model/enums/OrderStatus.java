@@ -1,5 +1,7 @@
 package model.enums;
 
-public class OrderStatus {
-    
+public enum OrderStatus {
+    PREPARING,
+    READY,
+    SERVED
 }

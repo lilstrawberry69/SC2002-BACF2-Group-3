@@ -15,7 +15,7 @@ public abstract class Staff {
         this.hasActed = false;
     }
 
-    public void setHasActed() {
+    public void setActed() {
         this.hasActed = true;
     }
 }

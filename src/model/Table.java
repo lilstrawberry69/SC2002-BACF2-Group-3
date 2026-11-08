@@ -1,28 +1,19 @@
 package model;
-
 import model.customer.Customer;
 
 public class Table {
-    private int tableId;
-    private boolean isOccupied;
-    private Customer seatedCustomer;
+    private final int id;
+    private Customer occupiedBy;
 
     public Table(int id) {
-        this.tableId = id;
-        this.isOccupied = false;
-        this.seatedCustomer = null;
+        this.id = id;
+        this.occupiedBy = null;
     }
 
-    public void occupy(Customer c) {
-        this.isOccupied = true;
-        this.seatedCustomer = c;
-    }
+    public int getId() { return id; }
+    public Customer getCustomer() { return occupiedBy; }
+    public boolean isFree() { return occupiedBy == null; }
 
-    public void freeTable() {
-        this.isOccupied = false;
-        this.seatedCustomer = null;
-    }
-
-    public boolean isOccupied() { return isOccupied; }
-    public Customer getCustomer() { return seatedCustomer; }
+    public void seatCustomer(Customer c) { this.occupiedBy = c; }
+    public void freeTable() { this.occupiedBy = null; }
 }

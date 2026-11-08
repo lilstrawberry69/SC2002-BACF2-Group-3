@@ -22,8 +22,14 @@ public class Dish implements IMenuItem {
     }
 
     @Override
-    public int getRequiredPrepunits() {
+    public int getRequiredPrepUnits() {
         return requiredPrepunits;
+    }
+    
+    //Custom toString method to display the dish name and price.
+    @Override
+    public String toString() {
+        return name + " ($" + String.format("%.2f", price) + ")";
     }
     
 }
