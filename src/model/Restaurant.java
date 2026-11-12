@@ -15,6 +15,11 @@ public class Restaurant {
     private final Cashier cashier;
 
     private double revenue;
+    // Added Host staff member
+    private model.staff.Host host = new model.staff.Host();
+    private boolean happyHourActive = false;
+    private boolean happyHourUsed = false;
+    private int happyHourTurnsLeft = 0;
 
     public Restaurant() {
         tables = Arrays.asList(new Table(1), new Table(2));
@@ -38,10 +43,34 @@ public class Restaurant {
         allCustomers.add(c);
     }
 
+    public model.staff.Host getHost() { return host; }
+
+    public void activateHappyHour() {
+        if (!happyHourUsed) {
+            happyHourActive = true;
+            happyHourUsed = true;
+            happyHourTurnsLeft = 2; // Lasts for this turn and the next
+        }
+    }
+
+    public boolean isHappyHourActive() { return happyHourActive; }
+    public boolean hasHappyHourBeenUsed() { return happyHourUsed; }
+    public int getHappyHourTurnsLeft() { return happyHourTurnsLeft; }
+
+    public void tickHappyHour() {
+        if (happyHourActive) {
+            happyHourTurnsLeft--;
+            if (happyHourTurnsLeft <= 0) {
+                happyHourActive = false;
+            }
+        }
+    }
+
     public void resetStaff() {
-        waiter.resetAction();
-        chef.resetAction();
-        cashier.resetAction();
+        getWaiter().resetAction();
+        getChef().resetAction();
+        getCashier().resetAction();
+        getHost().resetAction();
     }
 
     public List<Table> getTables() { return tables; }

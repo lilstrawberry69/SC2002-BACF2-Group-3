@@ -14,6 +14,9 @@ public class CommandLineUI implements IUserInterface {
     @Override
     public void displayTurnStatus(int turn, Restaurant r) {
         System.out.println("\n=== Turn " + turn + " / 18 ===");
+        if (r.isHappyHourActive()) {
+            System.out.println("*** HAPPY HOUR ACTIVE (" + r.getHappyHourTurnsLeft() + " turns left) ***");
+        }
         System.out.println("Revenue: $" + String.format("%.2f", r.getRevenue()));
         System.out.print("Queue: ");
         r.getWaitingQueue().forEach(c -> 
@@ -35,6 +38,46 @@ public class CommandLineUI implements IUserInterface {
                 }
 
                 System.out.println("C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") [" + displayStatus + "] Sat: " + c.getSatisfaction());
+            }
+        }
+    }
+
+    @Override
+    public void promptHappyHour(Restaurant r) {
+        System.out.println("\nActivate Happy Hour for 20% off and +15 Satisfaction? (Y/N): ");
+        String choice = scanner.nextLine().trim().toUpperCase();
+        if (choice.equals("Y")) {
+            r.activateHappyHour();
+            System.out.println("Happy Hour ACTIVATED! It will last for this turn and the next.");
+        }
+    }
+
+    @Override
+    public void promptHostAction(Restaurant r, int currentTurn) {
+        while (!r.getHost().hasActedThisTurn()) {
+            System.out.println("\nHost Action (1: Seat, 2: Wait): ");
+            String choice = scanner.nextLine().trim();
+
+            try {
+                if (choice.equals("1")) {
+                    if (!r.getWaitingQueue().isEmpty() && r.getTables().stream().anyMatch(model.Table::isFree)) {
+                        model.customer.Customer c = r.getWaitingQueue().peek();
+                        model.Table t = r.getTables().stream().filter(model.Table::isFree).findFirst().get();
+                        if (r.getHost().seatCustomer(c, t)) {
+                            r.getWaitingQueue().poll();
+                            System.out.println("Host seated C" + c.getId() + " at Table " + t.getId());
+                        }
+                    } else {
+                        System.out.println("Invalid: No customers or no free tables.");
+                    }
+                } else if (choice.equals("2")) {
+                    r.getHost().setActed();
+                    System.out.println("Host waits.");
+                } else {
+                    System.out.println("Invalid input.");
+                }
+            } catch (Exception e) {
+                System.out.println("Error processing Host action.");
             }
         }
     }
@@ -66,8 +109,8 @@ public class CommandLineUI implements IUserInterface {
                         int id = Integer.parseInt(scanner.nextLine());
                         Customer target = readyToOrder.stream().filter(c -> c.getId() == id).findFirst().orElse(null);
 
-                        if (target != null && r.getWaiter().takeOrder(target, r.getMenu())) {
-                            System.out.println("Took order for C" + target.getId() + ": " + target.getOrder().getItem().getName());
+                        if (target != null && r.getWaiter().takeOrder(target, r.getMenu(), r.isHappyHourActive())) {
+                            System.out.println("Took order for C" + target.getId() + ": " + target.getOrder().getItem().getName() +" | Locked Price: $" + String.format("%.2f", target.getOrder().getLockedPrice()));
                         } else {
                             System.out.println("Invalid customer selection.");
                         }

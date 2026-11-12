@@ -1,39 +1,43 @@
 package model;
+
 import model.enums.OrderStatus;
 
 public class Order {
-    private final IMenuItem item;
     private int prepUnitsLeft;
-    private OrderStatus status;
     private int turnBecameReady;
+    private OrderStatus status;
+    private final IMenuItem item;
+    private double lockedPrice; // NEW for Stage 3
 
     public Order(IMenuItem item) {
         this.item = item;
         this.prepUnitsLeft = item.getRequiredPrepUnits();
-        this.status = OrderStatus.PREPARING;
-        this.turnBecameReady = -1;
+        this.status = OrderStatus.PENDING;
+        this.turnBecameReady = -1; // Moved back to the constructor for consistency!
     }
 
-    public IMenuItem getItem() { return item; }
-    public int getPrepUnitsLeft() { return prepUnitsLeft; }
-    public OrderStatus getStatus() { return status; }
-    public int getTurnBecameReady() { return turnBecameReady; }
+    public void setLockedPrice(double price) { this.lockedPrice = price; }
+    public double getLockedPrice() { return lockedPrice; }
 
-    // Advances the preparation of the order by 1 unit.
-    // Records the exact turn it finishes so we can enforce the "serve next turn at earliest" rule.
     public void advancePrep(int currentTurn) {
         if (prepUnitsLeft > 0) {
             prepUnitsLeft--;
+            status = OrderStatus.PREPARING;
             if (prepUnitsLeft == 0) {
                 status = OrderStatus.READY;
                 turnBecameReady = currentTurn;
             }
         }
     }
-
+    
     public void setServed() {
         this.status = OrderStatus.SERVED;
     }
+    
+    public int getPrepUnitsLeft() { return prepUnitsLeft; }
+    public boolean isReady() { return status == OrderStatus.READY; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
+    public IMenuItem getItem() { return item; }
+    public int getTurnBecameReady() { return turnBecameReady; }
 }
-
-

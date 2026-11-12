@@ -16,9 +16,21 @@ public class Waiter extends Staff {
         return false;
     }
 
-    public boolean takeOrder(Customer c, java.util.List<model.IMenuItem> menu) {
-        if (c.getState() == CustomerState.SEATED && c.getOrder() == null) {
+    public boolean takeOrder(Customer c, java.util.List<model.IMenuItem> menu, boolean isHappyHour) {
+        if (c.getOrder() == null) {
             c.placeOrder(menu);
+            
+            // Calculate locked price: VIP discount first, then Happy Hour
+            double basePrice = c.getOrder().getItem().getPrice();
+            double discountedPrice = c.calculateBill(basePrice); // applies VIP discount if applicable
+            
+            if (isHappyHour) {
+                discountedPrice = discountedPrice * 0.80; // 20% off
+            }
+            
+            // Lock the final price
+            c.getOrder().setLockedPrice(Math.round(discountedPrice * 100.0) / 100.0);
+            
             setActed();
             return true;
         }

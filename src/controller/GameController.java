@@ -33,16 +33,30 @@ public class GameController {
 
         // Step 1: Arrivals - Updated for Stage 2 to include VIP and Critic
         if (currentTurn == 1) restaurant.addCustomer(new RegularCustomer(nextCustomerId++));
-        if (currentTurn == 4) restaurant.addCustomer(new VIPCustomer(nextCustomerId++)); // Stage 2 VIP
-        if (currentTurn == 7) restaurant.addCustomer(new CriticCustomer(nextCustomerId++)); // Stage 2 Critic
+        if (currentTurn == 4) restaurant.addCustomer(new VIPCustomer(nextCustomerId++)); 
+        if (currentTurn == 7) restaurant.addCustomer(new CriticCustomer(nextCustomerId++)); 
         if (currentTurn == 10) restaurant.addCustomer(new RegularCustomer(nextCustomerId++));
         if (currentTurn == 13) restaurant.addCustomer(new RegularCustomer(nextCustomerId++));
         if (currentTurn == 16) restaurant.addCustomer(new RegularCustomer(nextCustomerId++));
 
+        // STAGE 3: HAPPY HOUR TICK & RECOVERY
+        if (restaurant.isHappyHourActive()) {
+            for (Customer c : restaurant.getAllCustomers()) {
+                c.recoverSatisfaction(); // +15 points
+            }
+            restaurant.tickHappyHour();
+        }
+
         ui.displayTurnStatus(currentTurn, restaurant);
 
+        // STAGE 3: OPTIONAL HAPPY HOUR ACTIVATION
+        if (!restaurant.hasHappyHourBeenUsed()) {
+            ui.promptHappyHour(restaurant);
+        }
+
         // Step 2 & 3: Manager Choices
-        ui.promptWaiterAction(restaurant, currentTurn);
+        ui.promptHostAction(restaurant, currentTurn); // STAGE 3 HOST ACTION
+        ui.promptWaiterAction(restaurant, currentTurn); // Ensure this passes restaurant.isHappyHourActive() to Waiter!
         ui.promptChefAction(restaurant, currentTurn);
 
         // Step 4: Eating & Payment

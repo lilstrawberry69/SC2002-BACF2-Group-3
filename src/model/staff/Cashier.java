@@ -5,11 +5,14 @@ import model.customer.Customer;
 import model.enums.CustomerState;
 
 public class Cashier extends Staff {
+    // Update to use the locked price
     public double processPayment(Customer c, Table t) {
         c.setState(CustomerState.PAID);
-        // Uses the polymorphic calculateBill method defined in Stage 2
-        double paidAmount = c.calculateBill(c.getOrder().getItem().getPrice()); 
         t.freeTable();
-        return paidAmount;
+        setActed();
+        // Return the locked price from the order instead of calculating it here
+        return c.getOrder().getLockedPrice();
     }
+
+    
 }

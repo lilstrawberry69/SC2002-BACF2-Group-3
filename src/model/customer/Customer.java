@@ -1,5 +1,6 @@
 package model.customer;
 
+import model.ComboMeal;
 import model.IMenuItem;
 import model.Order;
 import model.enums.CustomerState;
@@ -29,9 +30,17 @@ public abstract class Customer {
     public abstract void decreaseSatisfaction();
     public abstract double calculateBill(double baseAmount);
 
+    // Edit: Added placeOrder method to handle combo meal logic
     public void placeOrder(List<IMenuItem> menu) {
-        IMenuItem chosenItem = menu.get((id - 1) % menu.size());
-        this.order = new Order(chosenItem);
+        int index = (id - 1) % menu.size();
+        IMenuItem chosenItem = menu.get(index);
+        
+        // Every 2nd customer orders a combo meal
+        if (id % 2 == 0) {
+            IMenuItem nextItem = menu.get((index + 1) % menu.size());
+            chosenItem = new ComboMeal(chosenItem, nextItem);
+        }
+        this.setOrder(new Order(chosenItem));
     }
 
     public void tickEating() {
@@ -41,6 +50,15 @@ public abstract class Customer {
                 hasEaten = true; 
             } else {
                 setState(CustomerState.READY_TO_PAY); 
+            }
+        }
+    }
+
+    // NEW: Happy hour satisfaction recovery
+    public void recoverSatisfaction() {
+        if (state == model.enums.CustomerState.WAITING || state == model.enums.CustomerState.SEATED) {
+            if (order == null || order.getStatus() != model.enums.OrderStatus.SERVED) {
+                satisfaction = Math.min(100, satisfaction + 15);
             }
         }
     }

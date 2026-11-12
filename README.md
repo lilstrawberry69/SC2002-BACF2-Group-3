@@ -1,5 +1,7 @@
 # SC2002 Restaurant Rush - Stage 1
 
+* **Repo URL: https://github.com/lilstrawberry69/SC2002-BACF2-Group-3.git**
+
 ## Stage 1 Description
 
 Stage 1 delivers a fully playable, command-line turn-based restaurant management game. It includes:
@@ -19,13 +21,13 @@ Stage 2 builds upon the core loop by introducing diverse customer behaviors thro
 
 * **Polymorphic Dispatch:** Customer-specific rules (satisfaction decay, billing, ordering) are handled internally by the respective `Customer` subclasses (`RegularCustomer`, `VIPCustomer`, `CriticCustomer`), ensuring the `GameController` remains clean.
 
-## Build and Run Instructions
+## Stage 3 Description (New Role and Menu Policy)
+Stage 3 introduces new staff, promotional mechanics, and complex menu items:
+* **Host Role:** A new staff member who can seat queued customers at free tables, freeing up the Waiter's actions
 
-Run `GameController.java` under the controller subfolder.
+* **Combo Meals (Composite Pattern):**  Customers whose ID is a multiple of 3 (e.g., C6) deterministically order a Combo Meal. This combines two menu items, sums their prep units, and applies a 10% discount to their combined base price.
 
-* **Compile:** `javac src/model/**/*.java src/model/*.java src/view/*.java src/controller/*.java`
-
-* **Run:** `java -cp src controller.GameController`
+* **Happy Hour:** The manager can activate Happy Hour once per game. It lasts for two turns, offering a 20% discount on orders placed during this time (stacking with VIP discounts) and recovering 15 satisfaction points for waiting/seated customers. Prices are firmly locked into the Order when taken.
 
 ## Stage Transition Logs
 
@@ -39,3 +41,25 @@ Run `GameController.java` under the controller subfolder.
   * `GameController.java`: Updated Step 1 arrival logic to spawn a VIP on Turn 4 and a Critic on Turn 7. Modified Step 5 waiting logic to call `c.decreaseSatisfaction()` polymorphically.
   * `Cashier.java`: Updated `processPayment()` to call the polymorphic `c.calculateBill()` for accurate billing.
   * `CommandLineUI.java`: Updated display methods to dynamically show customer subclass types (e.g., VIP, Critics) next to IDs.
+
+  ### Stage 2 -> Stage 3 Transition
+  * **New Files Added:**
+   * `Host.java` ( New staff role to manage seating.), `ComboMeal.java`(Implements IMenuItem as a composite of two dishes.).
+
+  * **Existing Files Modified:**
+  * `Restraunt.java`:  Added Happy Hour state tracking and the Host instance.
+  * `Order.java`: Added `lockedPrice` to freeze Happy Hour and VIP discounts at the time of ordering.
+  * `Customer.java`: Added Happy Hour satisfaction recovery and Combo Meal modulo `(id % 3 == 0)` logic.
+  * `Waiter.java`: Updated to calculate and lock the final price during order taking.
+  * `Caisher.java`: Updated to retrieve the `lockedPrice` instead of recalculating the bill.
+  * `Chef.java`: Adjusted order status checks to handle `PENDING` orders robustly.
+  * `GameController.java`: Intertwined Happy Hour prompts, satisfaction recovery, and Host actions into the turn loop.
+  * `CommandLineUI.java`: Added visual cues for Happy Hour and prompts for Host interactions.
+
+## Build and Run Instructions
+
+Run `GameController.java` under the controller subfolder.
+
+* **Compile:** `javac src/model/**/*.java src/model/*.java src/view/*.java src/controller/*.java`
+
+* **Run:** `java -cp src controller.GameController`
