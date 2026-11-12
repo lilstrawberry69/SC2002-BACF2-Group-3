@@ -1,9 +1,8 @@
 package controller;
 
 import model.*;
-import model.customer.Customer;
+import model.customer.*;
 import model.enums.CustomerState;
-import model.enums.OrderStatus;
 import view.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,42 +31,45 @@ public class GameController {
     private void executeTurn() {
         restaurant.resetStaff();
 
-        // 1. Arrivals
-        if (currentTurn == 1 || currentTurn == 4 || currentTurn == 7 || 
-            currentTurn == 10 || currentTurn == 13 || currentTurn == 16) {
-            restaurant.addCustomer(new Customer(nextCustomerId++));
-        }
+        // Step 1: Arrivals - Updated for Stage 2 to include VIP and Critic
+        if (currentTurn == 1) restaurant.addCustomer(new RegularCustomer(nextCustomerId++));
+        if (currentTurn == 4) restaurant.addCustomer(new VIPCustomer(nextCustomerId++)); // Stage 2 VIP
+        if (currentTurn == 7) restaurant.addCustomer(new CriticCustomer(nextCustomerId++)); // Stage 2 Critic
+        if (currentTurn == 10) restaurant.addCustomer(new RegularCustomer(nextCustomerId++));
+        if (currentTurn == 13) restaurant.addCustomer(new RegularCustomer(nextCustomerId++));
+        if (currentTurn == 16) restaurant.addCustomer(new RegularCustomer(nextCustomerId++));
 
         ui.displayTurnStatus(currentTurn, restaurant);
 
-        // 2 & 3. Manager Choices (Waiter acts before Chef)
+        // Step 2 & 3: Manager Choices
         ui.promptWaiterAction(restaurant, currentTurn);
         ui.promptChefAction(restaurant, currentTurn);
 
-        // 4. Eating and payment
-        // We process payments FIRST so customers who become READY_TO_PAY this turn must wait until next turn
+        // Step 4: Eating & Payment
+        
+        // 4b: Cashier automatically processes exactly ONE oldest READY_TO_PAY customer
         List<Table> readyToPayTables = restaurant.getTables().stream()
             .filter(t -> !t.isFree() && t.getCustomer().getState() == CustomerState.READY_TO_PAY)
             .collect(Collectors.toList());
 
         if (!readyToPayTables.isEmpty()) {
-            Table t = readyToPayTables.get(0);
+            Table t = readyToPayTables.get(0); 
             Customer payingCustomer = t.getCustomer(); 
             double paid = restaurant.getCashier().processPayment(payingCustomer, t);
             restaurant.addRevenue(paid);
             ui.showMessage("Cashier collected $" + String.format("%.2f", paid) + " from Customer " + payingCustomer.getId());
         }
 
-        // THEN tick eating for everyone else (so newly finished eaters aren't charged instantly)
+        // 4a: Customers who were served update their state to READY_TO_PAY if done eating
         for (Customer c : restaurant.getAllCustomers()) {
             c.tickEating();
         }
 
-        // 5. Waiting and abandonment
+        // Step 5: Waiting & Abandonment - Uses polymorphic decreaseSatisfaction()
         for (Customer c : restaurant.getAllCustomers()) {
             if (c.getState() == CustomerState.WAITING || c.getState() == CustomerState.SEATED) {
-                if (c.getOrder() == null || c.getOrder().getStatus() != OrderStatus.SERVED) {
-                    c.reduceSatisfaction(8);
+                if (c.getOrder() == null || c.getOrder().getStatus() != model.enums.OrderStatus.SERVED) {
+                    c.decreaseSatisfaction(); 
                     if (c.getState() == CustomerState.LEFT) {
                         ui.showMessage("Customer " + c.getId() + " abandoned the restaurant!");
                         restaurant.getWaitingQueue().remove(c);

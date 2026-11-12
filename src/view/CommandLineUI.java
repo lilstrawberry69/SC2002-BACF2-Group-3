@@ -16,24 +16,25 @@ public class CommandLineUI implements IUserInterface {
         System.out.println("\n=== Turn " + turn + " / 18 ===");
         System.out.println("Revenue: $" + String.format("%.2f", r.getRevenue()));
         System.out.print("Queue: ");
-        r.getWaitingQueue().forEach(c -> System.out.print("[C" + c.getId() + " Sat:" + c.getSatisfaction() + "] "));
+        r.getWaitingQueue().forEach(c -> 
+            System.out.print("[C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") Sat:" + c.getSatisfaction() + "] ")
+        );
         System.out.println();
 
         for (Table t : r.getTables()) {
             System.out.print("Table " + t.getId() + ": ");
-            if (t.isFree()) System.out.println("Empty");
-            else {
+            if (t.isFree()) {
+                System.out.println("Empty");
+            } else {
                 Customer c = t.getCustomer();
-                String status = c.getState().toString();
-                // Overriding status for Ordered and Served display
+                String displayStatus = c.getState().toString();
+
                 if (c.getOrder() != null) {
-                    if (c.getOrder().getStatus() == OrderStatus.SERVED) {
-                        status = "Served";
-                    } else {
-                        status = "Ordered";
-                    }
+                    if (c.getOrder().getStatus() == OrderStatus.SERVED) displayStatus = "Served";
+                    else displayStatus = "Ordered";
                 }
-                System.out.println("C" + c.getId() + " (" + status + ") Sat: " + c.getSatisfaction());
+
+                System.out.println("C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") [" + displayStatus + "] Sat: " + c.getSatisfaction());
             }
         }
     }
@@ -47,9 +48,10 @@ public class CommandLineUI implements IUserInterface {
             try {
                 if (choice.equals("1")) {
                     if (!r.getWaitingQueue().isEmpty() && r.getTables().stream().anyMatch(Table::isFree)) {
-                        Customer c = r.getWaitingQueue().poll();
+                        Customer c = r.getWaitingQueue().peek();
                         Table t = r.getTables().stream().filter(Table::isFree).findFirst().get();
                         r.getWaiter().seatCustomer(c, t);
+                        r.getWaitingQueue().poll();
                         System.out.println("Seated C" + c.getId() + " at Table " + t.getId());
                     } else System.out.println("Invalid: No customers or no free tables.");
                 } else if (choice.equals("2")) {
@@ -59,7 +61,7 @@ public class CommandLineUI implements IUserInterface {
 
                     if (!readyToOrder.isEmpty()) {
                         System.out.print("Select customer to take order from (Available: ");
-                        readyToOrder.forEach(c -> System.out.print("C" + c.getId() + " "));
+                        readyToOrder.forEach(c -> System.out.print("C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") "));
                         System.out.println("): ");
                         int id = Integer.parseInt(scanner.nextLine());
                         Customer target = readyToOrder.stream().filter(c -> c.getId() == id).findFirst().orElse(null);
@@ -79,7 +81,7 @@ public class CommandLineUI implements IUserInterface {
 
                     if (!readyToServe.isEmpty()) {
                         System.out.print("Select customer to serve (Available: ");
-                        readyToServe.forEach(c -> System.out.print("C" + c.getId() + " "));
+                        readyToServe.forEach(c -> System.out.print("C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") "));
                         System.out.println("): ");
                         int id = Integer.parseInt(scanner.nextLine());
                         Customer target = readyToServe.stream().filter(c -> c.getId() == id).findFirst().orElse(null);
@@ -97,7 +99,7 @@ public class CommandLineUI implements IUserInterface {
                     System.out.println("Invalid input.");
                 }
             } catch (Exception e) {
-                System.out.println("Error processing Waiter action. Please ensure you type a valid number.");
+                System.out.println("Error processing Waiter action. Please type a valid number.");
             }
         }
     }
@@ -112,12 +114,13 @@ public class CommandLineUI implements IUserInterface {
                 if (choice.equals("1")) {
                     List<Customer> readyToCook = r.getTables().stream()
                         .filter(t -> !t.isFree() && t.getCustomer().getOrder() != null && 
-                                     t.getCustomer().getOrder().getStatus() == OrderStatus.PREPARING)
+                                     (t.getCustomer().getOrder().getStatus() == OrderStatus.PREPARING || 
+                                      t.getCustomer().getOrder().getStatus() == OrderStatus.PENDING))
                         .map(Table::getCustomer).collect(Collectors.toList());
 
                     if (!readyToCook.isEmpty()) {
                         System.out.print("Select customer order to cook (Available: ");
-                        readyToCook.forEach(c -> System.out.print("C" + c.getId() + " (" + c.getOrder().getItem().getName() + ") "));
+                        readyToCook.forEach(c -> System.out.print("C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") [" + c.getOrder().getItem().getName() + "] "));
                         System.out.println("): ");
                         int id = Integer.parseInt(scanner.nextLine());
                         Customer target = readyToCook.stream().filter(c -> c.getId() == id).findFirst().orElse(null);
@@ -135,13 +138,13 @@ public class CommandLineUI implements IUserInterface {
                     System.out.println("Invalid input.");
                 }
             } catch (Exception e) {
-                 System.out.println("Error processing Chef action. Please ensure you type a valid number.");
+                 System.out.println("Error processing Chef action. Please type a valid number.");
             }
         }
     }
 
     @Override
-    public void showMessage(String message) {
-        System.out.println(message);
+    public void showMessage(String msg) {
+        System.out.println(msg);
     }
 }

@@ -1,7 +1,9 @@
 package model.enums;
 
 public enum OrderStatus {
+    PENDING,
     PREPARING,
     READY,
-    SERVED
+    SERVED,
+    CANCELLED
 }

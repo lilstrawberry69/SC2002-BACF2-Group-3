@@ -5,18 +5,17 @@ import model.Order;
 import model.enums.CustomerState;
 import java.util.List;
 
-public class Customer {
+public abstract class Customer {
     private final int id;
-    private int satisfaction;
+    protected int satisfaction;
     private CustomerState state;
     private Order order;
-    private int turnsEating;
+    private boolean hasEaten = false; 
 
     public Customer(int id) {
         this.id = id;
         this.satisfaction = 100;
         this.state = CustomerState.WAITING;
-        this.turnsEating = 0;
     }
 
     public int getId() { return id; }
@@ -25,26 +24,23 @@ public class Customer {
     public Order getOrder() { return order; }
 
     public void setState(CustomerState state) { this.state = state; }
+    public void setOrder(Order order) { this.order = order; }
 
-    public void reduceSatisfaction(int amount) {
-        this.satisfaction = Math.max(0, this.satisfaction - amount);
-        if (this.satisfaction == 0 && (state == CustomerState.WAITING || state == CustomerState.SEATED)) {
-            this.state = CustomerState.LEFT;
-        }
-    }
+    public abstract void decreaseSatisfaction();
+    public abstract double calculateBill(double baseAmount);
 
     public void placeOrder(List<IMenuItem> menu) {
-        // Deterministic choice based on ID to meet assignment requirements without random flakiness
         IMenuItem chosenItem = menu.get((id - 1) % menu.size());
         this.order = new Order(chosenItem);
     }
 
-    // Handles the transition from eating to being ready to pay after 1 full turn
     public void tickEating() {
-        if (this.state == CustomerState.SERVED) {
-            turnsEating++;
-            if (turnsEating >= 1) {
-                this.state = CustomerState.READY_TO_PAY;
+        // Removed the strict 'state == SEATED' check to ensure it triggers properly
+        if (order != null && order.getStatus() == model.enums.OrderStatus.SERVED && state != CustomerState.READY_TO_PAY && state != CustomerState.PAID) {
+            if (!hasEaten) {
+                hasEaten = true; 
+            } else {
+                setState(CustomerState.READY_TO_PAY); 
             }
         }
     }

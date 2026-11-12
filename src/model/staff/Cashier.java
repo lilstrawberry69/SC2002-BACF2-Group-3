@@ -1,16 +1,15 @@
 package model.staff;
-import model.customer.Customer;
+
 import model.Table;
+import model.customer.Customer;
 import model.enums.CustomerState;
 
 public class Cashier extends Staff {
     public double processPayment(Customer c, Table t) {
-        if (c.getState() == CustomerState.READY_TO_PAY) {
-            c.setState(CustomerState.PAID);
-            t.freeTable();
-            setActed();
-            return c.getOrder().getItem().getPrice();
-        }
-        return 0.0;
+        c.setState(CustomerState.PAID);
+        // Uses the polymorphic calculateBill method defined in Stage 2
+        double paidAmount = c.calculateBill(c.getOrder().getItem().getPrice()); 
+        t.freeTable();
+        return paidAmount;
     }
 }
