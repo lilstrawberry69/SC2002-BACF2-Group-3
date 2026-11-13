@@ -1,10 +1,29 @@
-Model Gemini 3.1 pro
+Summary of AI Assistance
 
-prompt: what is the purpose of game controller in the uml diagrame?
+In Stage 1, the AI was used to establish the foundational architecture of the Restaurant Rush game, generate the initial UML class diagram, and debug core game loop issues.
 
-Response: Based on the UML diagram, the GameController acts as the central orchestrator for the entire game. Its main purposes are:
-Managing the Game Loop: It tracks the progression of time (currentTurn, maxTurns) and executes the 6-step turn sequence outlined in the requirements using executeTurn().
+Prompts & AI Contributions
 
-Bridging UI and Domain: It connects the user interface (UIBoundary) with the core game logic and data (Restaurant), ensuring that game rules are kept out of the UI.
+Architecture & UML Generation:
 
-Handling Game State: It handles the start of the game (startGame()) and evaluates the final victory or defeat conditions once the 18 turns are over (checkEndConditions()).
+Prompt: Asked the AI to generate a UML class diagram based on the assignment brief, highlighting core entities (Waiter, Chef, Cashier, Customer, Table, Order, Dish).
+
+Contribution: The AI proposed a Model-View-Controller (MVC) structure and recommended using an IUserInterface and IMenuItem to ensure scalability for future stages.
+
+Code Generation:
+
+Prompt: Requested the boilerplate Java code and package structure.
+
+Contribution: The AI generated the initial .java files with constructors and basic attributes.
+
+Debugging the Payment Loop:
+
+Prompt: Fed an error log showing a NullPointerException when the Cashier processed payments.
+
+Contribution: The AI identified that the table was being freed (setting the customer to null) before the UI could read the customer's ID for the success message. It provided a fix to cache the customer reference before freeing the table.
+
+Refining Waiter Logic:
+
+Prompt: Pointed out a bug where the Waiter automatically took orders based on an arbitrary list rather than allowing the manager to choose.
+
+Contribution: The AI updated the CommandLineUI to properly list available seated customers and accept integer inputs for targeted Waiter actions.
