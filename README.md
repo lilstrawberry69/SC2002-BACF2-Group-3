@@ -8,7 +8,7 @@ Stage 1 delivers a fully playable, command-line turn-based restaurant management
 * **Basic Restaurant Operation:** Implementation of the core game loop (18 turns maximum).
 * **Core Entities:** `Regular` customers, three base menu items (Salad, Burger, Pasta).
 * **Staff Roles:** `Waiter`, `Chef`, and an automated `Cashier`.
-* **Game Flow:** Full implementation of the 6-step turn sequence, tracking customer satisfaction, handling abandonment, processing payments, and evaluating victory/defeat conditions.
+* **Game Flow:** Full implementation of the turn sequences, tracking customer satisfaction, manager choices, processing payments, and evaluating victory/defeat conditions.
 
 
 ## Stage 2 Description (Customer Behaviour Extension)
