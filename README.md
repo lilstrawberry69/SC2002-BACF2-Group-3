@@ -1,6 +1,7 @@
 # SC2002 Restaurant Rush - Stage 1
 
 * **Repo URL: https://github.com/lilstrawberry69/SC2002-BACF2-Group-3.git**
+* **Video Link: https://entuedu-my.sharepoint.com/:v:/g/personal/zh0003fu_e_ntu_edu_sg/IQAzpRwzme_xQYI8p2ponxk_AaRxb2nuykIp1lEO6OaBGLc?e=v3vfID**
 
 ## Stage 1 Description
 
