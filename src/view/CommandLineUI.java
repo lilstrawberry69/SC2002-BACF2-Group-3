@@ -1,0 +1,193 @@
+package view;
+
+import model.Restaurant;
+import model.Table;
+import model.customer.Customer;
+import model.enums.OrderStatus;
+import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Collectors;
+
+public class CommandLineUI implements IUserInterface {
+    private final Scanner scanner = new Scanner(System.in);
+
+    @Override
+    public void displayTurnStatus(int turn, Restaurant r) {
+        System.out.println("\n=== Turn " + turn + " / 18 ===");
+        if (r.isHappyHourActive()) {
+            System.out.println("*** HAPPY HOUR ACTIVE (" + r.getHappyHourTurnsLeft() + " turns left) ***");
+        }
+        System.out.println("Revenue: $" + String.format("%.2f", r.getRevenue()));
+        System.out.print("Queue: ");
+        r.getWaitingQueue().forEach(c -> 
+            System.out.print("[C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") Sat:" + c.getSatisfaction() + "] ")
+        );
+        System.out.println();
+
+        for (Table t : r.getTables()) {
+            System.out.print("Table " + t.getId() + ": ");
+            if (t.isFree()) {
+                System.out.println("Empty");
+            } else {
+                Customer c = t.getCustomer();
+                String displayStatus = c.getState().toString();
+
+                if (c.getOrder() != null) {
+                    if (c.getOrder().getStatus() == OrderStatus.SERVED) displayStatus = "Served";
+                    else displayStatus = "Ordered";
+                }
+
+                System.out.println("C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") [" + displayStatus + "] Sat: " + c.getSatisfaction());
+            }
+        }
+    }
+
+    @Override
+    public void promptHappyHour(Restaurant r) {
+        System.out.println("\nActivate Happy Hour for 20% off and +15 Satisfaction? (Y/N): ");
+        String choice = scanner.nextLine().trim().toUpperCase();
+        if (choice.equals("Y")) {
+            r.activateHappyHour();
+            System.out.println("Happy Hour ACTIVATED! It will last for this turn and the next.");
+        }
+    }
+
+    @Override
+    public void promptHostAction(Restaurant r, int currentTurn) {
+        while (!r.getHost().hasActedThisTurn()) {
+            System.out.println("\nHost Action (1: Seat, 2: Wait): ");
+            String choice = scanner.nextLine().trim();
+
+            try {
+                if (choice.equals("1")) {
+                    if (!r.getWaitingQueue().isEmpty() && r.getTables().stream().anyMatch(model.Table::isFree)) {
+                        model.customer.Customer c = r.getWaitingQueue().peek();
+                        model.Table t = r.getTables().stream().filter(model.Table::isFree).findFirst().get();
+                        if (r.getHost().seatCustomer(c, t)) {
+                            r.getWaitingQueue().poll();
+                            System.out.println("Host seated C" + c.getId() + " at Table " + t.getId());
+                        }
+                    } else {
+                        System.out.println("Invalid: No customers or no free tables.");
+                    }
+                } else if (choice.equals("2")) {
+                    r.getHost().setActed();
+                    System.out.println("Host waits.");
+                } else {
+                    System.out.println("Invalid input.");
+                }
+            } catch (Exception e) {
+                System.out.println("Error processing Host action.");
+            }
+        }
+    }
+
+    @Override
+    public void promptWaiterAction(Restaurant r, int currentTurn) {
+        while (!r.getWaiter().hasActedThisTurn()) {
+            System.out.println("\nWaiter Action (1: Seat, 2: Order, 3: Serve, 4: Wait): ");
+            String choice = scanner.nextLine();
+
+            try {
+                if (choice.equals("1")) {
+                    if (!r.getWaitingQueue().isEmpty() && r.getTables().stream().anyMatch(Table::isFree)) {
+                        Customer c = r.getWaitingQueue().peek();
+                        Table t = r.getTables().stream().filter(Table::isFree).findFirst().get();
+                        r.getWaiter().seatCustomer(c, t);
+                        r.getWaitingQueue().poll();
+                        System.out.println("Seated C" + c.getId() + " at Table " + t.getId());
+                    } else System.out.println("Invalid: No customers or no free tables.");
+                } else if (choice.equals("2")) {
+                    List<Customer> readyToOrder = r.getTables().stream()
+                        .filter(t -> !t.isFree() && t.getCustomer().getOrder() == null)
+                        .map(Table::getCustomer).collect(Collectors.toList());
+
+                    if (!readyToOrder.isEmpty()) {
+                        System.out.print("Select customer to take order from (Available: ");
+                        readyToOrder.forEach(c -> System.out.print("C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") "));
+                        System.out.println("): ");
+                        int id = Integer.parseInt(scanner.nextLine());
+                        Customer target = readyToOrder.stream().filter(c -> c.getId() == id).findFirst().orElse(null);
+
+                        if (target != null && r.getWaiter().takeOrder(target, r.getMenu(), r.isHappyHourActive())) {
+                            System.out.println("Took order for C" + target.getId() + ": " + target.getOrder().getItem().getName() +" | Locked Price: $" + String.format("%.2f", target.getOrder().getLockedPrice()));
+                        } else {
+                            System.out.println("Invalid customer selection.");
+                        }
+                    } else System.out.println("Invalid: No seated customers ready to order.");
+                } else if (choice.equals("3")) {
+                    List<Customer> readyToServe = r.getTables().stream()
+                        .filter(t -> !t.isFree() && t.getCustomer().getOrder() != null && 
+                                     t.getCustomer().getOrder().getStatus() == OrderStatus.READY &&
+                                     t.getCustomer().getOrder().getTurnBecameReady() < currentTurn)
+                        .map(Table::getCustomer).collect(Collectors.toList());
+
+                    if (!readyToServe.isEmpty()) {
+                        System.out.print("Select customer to serve (Available: ");
+                        readyToServe.forEach(c -> System.out.print("C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") "));
+                        System.out.println("): ");
+                        int id = Integer.parseInt(scanner.nextLine());
+                        Customer target = readyToServe.stream().filter(c -> c.getId() == id).findFirst().orElse(null);
+
+                        if (target != null && r.getWaiter().serveOrder(target, currentTurn)) {
+                            System.out.println("Served C" + target.getId());
+                        } else {
+                            System.out.println("Invalid customer selection.");
+                        }
+                    } else System.out.println("Invalid: No orders ready to serve from previous turns.");
+                } else if (choice.equals("4")) {
+                    r.getWaiter().setActed();
+                    System.out.println("Waiter waits.");
+                } else {
+                    System.out.println("Invalid input.");
+                }
+            } catch (Exception e) {
+                System.out.println("Error processing Waiter action. Please type a valid number.");
+            }
+        }
+    }
+
+    @Override
+    public void promptChefAction(Restaurant r, int currentTurn) {
+        while (!r.getChef().hasActedThisTurn()) {
+            System.out.println("Chef Action (1: Cook, 2: Wait): ");
+            String choice = scanner.nextLine();
+
+            try {
+                if (choice.equals("1")) {
+                    List<Customer> readyToCook = r.getTables().stream()
+                        .filter(t -> !t.isFree() && t.getCustomer().getOrder() != null && 
+                                     (t.getCustomer().getOrder().getStatus() == OrderStatus.PREPARING || 
+                                      t.getCustomer().getOrder().getStatus() == OrderStatus.PENDING))
+                        .map(Table::getCustomer).collect(Collectors.toList());
+
+                    if (!readyToCook.isEmpty()) {
+                        System.out.print("Select customer order to cook (Available: ");
+                        readyToCook.forEach(c -> System.out.print("C" + c.getId() + " (" + c.getClass().getSimpleName().replace("Customer", "") + ") [" + c.getOrder().getItem().getName() + "] "));
+                        System.out.println("): ");
+                        int id = Integer.parseInt(scanner.nextLine());
+                        Customer target = readyToCook.stream().filter(c -> c.getId() == id).findFirst().orElse(null);
+
+                        if (target != null && r.getChef().advancePreparation(target.getOrder(), currentTurn)) {
+                            System.out.println("Chef cooked for C" + target.getId() + ". Prep left: " + target.getOrder().getPrepUnitsLeft());
+                        } else {
+                            System.out.println("Invalid customer selection.");
+                        }
+                    } else System.out.println("Invalid: No orders to cook.");
+                } else if (choice.equals("2")) {
+                    r.getChef().setActed();
+                    System.out.println("Chef waits.");
+                } else {
+                    System.out.println("Invalid input.");
+                }
+            } catch (Exception e) {
+                 System.out.println("Error processing Chef action. Please type a valid number.");
+            }
+        }
+    }
+
+    @Override
+    public void showMessage(String msg) {
+        System.out.println(msg);
+    }
+}
