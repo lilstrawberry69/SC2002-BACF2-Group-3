@@ -2,7 +2,7 @@
 
 * **Repo URL: https://github.com/lilstrawberry69/SC2002-BACF2-Group-3.git**
 * **Video Link: https://entuedu-my.sharepoint.com/:v:/g/personal/zh0003fu_e_ntu_edu_sg/IQAzpRwzme_xQYI8p2ponxk_AaRxb2nuykIp1lEO6OaBGLc?e=v3vfID**
-* **Report Link: https://entuedu-my.sharepoint.com/:w:/g/personal/zh0003fu_e_ntu_edu_sg/IQBi6h7MgFnNQKHCHVHwbE1HARPgN3x8h_AxpAg-M8ZNsxs?e=FWArvx**
+* **Report Link: https://entuedu-my.sharepoint.com/:w:/g/personal/zh0003fu_e_ntu_edu_sg/IQBi6h7MgFnNQKHCHVHwbE1HAU6j2RwBT62Bzu3A28B6_-4?e=Ip2meG**
 ## Stage 1 Description
 
 Stage 1 delivers a fully playable, command-line turn-based restaurant management game. It includes:
